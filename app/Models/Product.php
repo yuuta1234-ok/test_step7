@@ -31,7 +31,9 @@ class Product extends Model
                 'companies.company_name'
             );
 
+
         // 検索条件を適用
+        // LIKE演算子：部分一致で使用　//　%{$search}% %はワイルドカード前後に文字列があっても有効だよ的な
         if (!empty($search)) {
             $query->where('products.product_name', 'LIKE', "%{$search}%");
         }

@@ -38,6 +38,7 @@ class TestController extends Controller
     // 商品新規登録処理
     public function store(Request $request, Product $product)
     {
+
         //　リクエストデータが正しいかをチェックするためのルールを定義している
         $request->validate([
             'product_name' => 'required',
@@ -45,7 +46,7 @@ class TestController extends Controller
             'price' => 'required|numeric',
             'stock' => 'required|integer',
             'comment' => 'nullable|string',
-            'img_path' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'img_path' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
         $product->product_name = $request->input('product_name');
@@ -56,7 +57,7 @@ class TestController extends Controller
 
         // 画像アップロード処理
         $imagePath = null;
-        if ($request->hasFile('img_path')) {
+        if ($request->hasFile('img_path') && $request->file('img_path')->isValid()) {
             $imagePath = $request->file('img_path')->store('images', 'public');
             $product->img_path = $imagePath;
         }
