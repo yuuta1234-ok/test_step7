@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Company;
 use App\Models\Product;
+use Illuminate\Support\Facades\Log;
 
 class TestController extends Controller
 {
@@ -38,33 +39,55 @@ class TestController extends Controller
     // 商品新規登録処理
     public function store(Request $request, Product $product)
     {
+        try {
+            // バリデーション
+            $request->validate([
+                'product_name' => 'required',
+                'company_id' => 'required',
+                'price' => 'required|numeric',
+                'stock' => 'required|integer',
+                'comment' => 'nullable|string',
+                'img_path' => 'nullable|file|max:2048',
+            ]);
 
-        //　リクエストデータが正しいかをチェックするためのルールを定義している
-        $request->validate([
-            'product_name' => 'required',
-            'company_id' => 'required',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'comment' => 'nullable|string',
-            'img_path' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
-        ]);
+            // 基本情報の保存
+            $product->product_name = $request->input('product_name');
+            $product->company_id = $request->input('company_id');
+            $product->price = $request->input('price');
+            $product->stock = $request->input('stock');
+            $product->comment = $request->input('comment');
 
-        $product->product_name = $request->input('product_name');
-        $product->company_id = $request->input('company_id');
-        $product->price = $request->input('price');
-        $product->stock = $request->input('stock');
-        $product->comment = $request->input('comment');
+            // 画像アップロード処理
+            if ($request->hasFile('img_path')) {
+                $file = $request->file('img_path');
 
-        // 画像アップロード処理
-        $imagePath = null;
-        if ($request->hasFile('img_path') && $request->file('img_path')->isValid()) {
-            $imagePath = $request->file('img_path')->store('images', 'public');
-            $product->img_path = $imagePath;
+                // ファイルが有効か確認
+                if (!$file->isValid()) {
+                    throw new \Exception('アップロードされたファイルが無効です。');
+                }
+
+                // ファイルを保存
+                $imagePath = $file->store('images', 'public');
+
+                if (!$imagePath) {
+                    throw new \Exception('ファイルの保存に失敗しました。');
+                }
+
+                $product->img_path = $imagePath;
+            }
+
+            $product->save();
+
+            return redirect()->route('index')->with('success', '商品が登録されました！');
+        } catch (\Exception $e) {
+            // エラーをログに記録
+            Log::error('Product creation error: ' . $e->getMessage());
+
+            // エラーメッセージとともに入力データを保持して前のページに戻る
+            return back()
+                ->withInput()
+                ->with('error', '商品の登録に失敗しました。: ' . $e->getMessage());
         }
-
-        $product->save();
-
-        return redirect()->route('index')->with('success', '商品が登録されました！');
     }
 
 
