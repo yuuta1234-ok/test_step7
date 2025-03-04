@@ -13,14 +13,13 @@
 @section('content')
 <div class="container">
     <h1 class="form-title">商品新規登録画面</h1>
-    <!-- エラーメッセージ表示部分を追加 -->
+
     @if(session('error'))
     <div class="alert alert-danger">
         {{ session('error') }}
     </div>
     @endif
 
-    <!-- 成功メッセージ表示も追加しておくと良いでしょう -->
     @if(session('success'))
     <div class="alert alert-success">
         {{ session('success') }}

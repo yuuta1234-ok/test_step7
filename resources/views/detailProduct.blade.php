@@ -22,7 +22,7 @@
         </div>
         <div class="form-group">
             <label class="form-label">商品画像</label>
-            <p class="text"><img src=" {{asset($product->img_path)}}" alt="商品画像" class="img-fluid"></p>
+            <p class="text"><img src="{{ asset('storage/' . $product->img_path) }}" alt="商品画像" style="width: 100px; height: auto;"></p>
         </div>
         <div class="form-group">
             <label class="form-label">商品名</label>
@@ -30,7 +30,7 @@
         </div>
         <div class="form-group">
             <label class="form-label">メーカー名</label>
-            <p class="text">{{$product->company_name}}</p>
+            <p class="text">{{$product->company->company_name}}</p>
         </div>
         <div class="form-group">
             <label class="form-label">価格</label>

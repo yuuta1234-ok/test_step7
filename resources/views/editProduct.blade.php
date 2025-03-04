@@ -14,7 +14,7 @@
 <div class="container">
     <h1 class="form-title">商品情報編集画面</h1>
     <div class="form-container border border-dark">
-        <form action="{{ route('update', ['id' => $product->id])}}" method="post">
+        <form action="{{ route('update', ['id' => $product->id])}}" method="post" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 

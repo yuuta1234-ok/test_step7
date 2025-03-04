@@ -16,32 +16,19 @@ class Product extends Model
         'img_path',
     ];
 
-    public static function getProduct($search = null, $company_id = null)
+    // 🔹 会社とのリレーションを定義
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public static function getProduct()
     {
         // クエリビルダを使用して products テーブルと companies テーブルを結合
         $query = DB::table('products')
             ->join('companies', 'products.company_id', '=', 'companies.id')
-            ->select(
-                'products.id',
-                'products.product_name',
-                'products.price',
-                'products.stock',
-                'products.comment',
-                'products.img_path',
-                'companies.company_name'
-            );
+            ->select('products.*', 'companies.company_name');
 
-
-        // 検索条件を適用
-        // LIKE演算子：部分一致で使用　//　%{$search}% %はワイルドカード前後に文字列があっても有効だよ的な
-        if (!empty($search)) {
-            $query->where('products.product_name', 'LIKE', "%{$search}%");
-        }
-
-        if (!empty($company_id)) {
-            $query->where('products.company_id', $company_id);
-        }
-
-        return $query->paginate(10); // 10件ずつページネーション
+        return $query->get();
     }
 }

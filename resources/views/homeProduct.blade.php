@@ -51,11 +51,11 @@
                 @foreach ($products as $product)
                 <tr>
                     <td>{{$product->id}}.</td>
-                    <td><img src="{{asset($product->img_path)}}" alt="商品画像" style="width: 100px; height: auto;"></td>
+                    <td><img src="{{asset('storage/' . $product->img_path)}}" alt="商品画像" style="width: 100px; height: auto;"></td>
                     <td>{{$product->product_name}}</td>
                     <td><span>¥</span>{{$product->price}}</td>
                     <td>{{$product->stock}}</td>
-                    <td>{{$product->company_name}}</td>
+                    <td>{{$product->company->company_name}}</td>
                     <td><a href="{{route('detail',['id'=>$product->id])}}" class="detail-button btn btn-info fs-5 ms-5">詳細</a></td>
                     <td>
                         <form action="{{route('delete',['id'=>$product->id])}}" method="post">
