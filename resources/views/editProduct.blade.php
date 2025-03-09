@@ -20,41 +20,45 @@
 
             <div class="form-group">
                 <label class="form-label fst-italic">ID.</label>
-                <label class="control fw-bolder fs-1">{{$product->id}}<span>.</span></label>
+                <label class="control fw-bolder fs-1">{{ $product->id }}<span>.</span></label>
             </div>
             <div class="form-group">
                 <label class="form-label">商品名<span class="required">*</span></label>
-                <input type="text" name="product_name" class="control">
+                <input type="text" name="product_name" class="control" value="{{ old('product_name', $product->product_name) }}">
             </div>
             <div class="form-group">
                 <label class="form-label">メーカー名<span class="required">*</span></label>
-                <select type="text" name="company_id" class="control">
-                    <option value=""></option>
+                <select name="company_id" class="control">
+                    <option value="">選択してください</option>
                     @foreach($companies as $company)
-                    <option value="{{$company->id}}">{{$company->company_name}}</option>
+                    <option value="{{ $company->id }}" {{ $product->company_id == $company->id ? 'selected' : '' }}>
+                        {{ $company->company_name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
             <div class="form-group">
                 <label class="form-label">価格<span class="required">*</span></label>
-                <input type="text" name="price" class="control">
+                <input type="text" name="price" class="control" value="{{ old('price', $product->price) }}">
             </div>
             <div class="form-group">
                 <label class="form-label">在庫数<span class="required">*</span></label>
-                <input type="text" name="stock" class="control">
+                <input type="text" name="stock" class="control" value="{{ old('stock', $product->stock) }}">
             </div>
             <div class="form-group">
                 <label class="form-label">コメント</label>
-                <textarea id="text" name="comment" class="control"></textarea>
+                <textarea id="text" name="comment" class="control">{{ old('comment', $product->comment) }}</textarea>
             </div>
-            <div class="form-group">
-                <label class="form-label">商品画像</label>
-                <input type="file" name="img_path" class="image">
+            <div class="form-group d-flex align-items-center" style="padding: 20px 0;">
+                <label class="form-label col-sm-4 text-start fw-bold">商品画像</label>
+                <input type="file" class="control @error('img_path') is-invalid @enderror" id="img_path" name="img_path">
+                @error('img_path')
+                <div class="text-danger">{{ $message }}</div>
+                @enderror
             </div>
-
 
             <button type="submit" class="button btn btn-warning py-3 fs-5">更新</button>
-            <a class="button btn btn-info py-3 fs-5" href="{{ route('detail',['id'=>$product->id])}}">戻る</a>
+            <a class="button btn btn-info py-3 fs-5" href="{{ route('detail', ['id' => $product->id]) }}">戻る</a>
         </form>
     </div>
 </div>

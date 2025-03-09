@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Company;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Requests\TestRequest;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 
 class TestController extends Controller
 {
@@ -44,8 +46,10 @@ class TestController extends Controller
 
 
     // 商品新規登録処理
-    public function store(TestRequest $request, Product $product)
+    public function store(StoreProductRequest $request, Product $product)
     {
+        DB::beginTransaction(); // トランザクション開始
+
         try {
             // 基本情報の保存
             $product->product_name = $request->input('product_name');
@@ -74,9 +78,11 @@ class TestController extends Controller
             }
 
             $product->save();
+            DB::commit();
 
             return redirect()->route('index')->with('success', '商品が登録されました！');
         } catch (\Exception $e) {
+            DB::rollBack();
             // エラーをログに記録
             Log::error('Product creation error: ' . $e->getMessage());
 
@@ -118,49 +124,38 @@ class TestController extends Controller
         return view('editProduct', compact('product', 'companies'));
     }
 
-    // 更新処理
-    public function updateProduct(Request $request, $id)
-    {
-        $product = Product::find($id);
-
-        if (!$product) {
-            abort(404);
-        }
-
-        // 画像がアップロードされていた場合、画像を処理
-        if ($request->hasFile('img_path')) {
-            // 既存の画像ファイルがあれば削除
-            if ($product->img_path && file_exists(storage_path('app/public/' . $product->img_path))) {
-                unlink(storage_path('app/public/' . $product->img_path));
-            }
-
-            // 新しい画像を保存
-            $file = $request->file('img_path');
-            if ($file->isValid()) {
-                $imagePath = $file->store('images', 'public');
-                $product->img_path = $imagePath; // 新しい画像のパスを保存
-            } else {
-                throw new \Exception('アップロードされた画像が無効です。');
-            }
-        }
-
-        $product->update($request->only([
-            'product_name',
-            'company_id',
-            'price',
-            'stock',
-            'comment'
-        ]));
-    }
 
     // 更新処理
-    public function update(TestRequest $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
+        DB::beginTransaction(); // トランザクション開始
+
         try {
-            $this->updateProduct($request, $id);
+            $product = Product::find($id);
+            if (!$product) {
+                abort(404);
+            }
+
+            // 画像の処理
+            if ($request->hasFile('img_path')) {
+                if ($product->img_path && file_exists(storage_path('app/public/' . $product->img_path))) {
+                    unlink(storage_path('app/public/' . $product->img_path));
+                }
+                $file = $request->file('img_path');
+                if ($file->isValid()) {
+                    $product->img_path = $file->store('images', 'public');
+                } else {
+                    throw new \Exception('アップロードされた画像が無効です。');
+                }
+            }
+
+            // 商品情報を更新
+            $product->update($request->only(['product_name', 'company_id', 'price', 'stock', 'comment']));
+
+            DB::commit();
             return redirect()->route('index')->with('success', '商品情報が更新されました！');
         } catch (\Exception $e) {
-
+            DB::rollBack();
             return back()->with('error', '商品情報の更新に失敗しました: ' . $e->getMessage());
         }
     }
@@ -169,15 +164,24 @@ class TestController extends Controller
     // 削除処理
     public function delete($id)
     {
-        $product = Product::find($id);
+        DB::beginTransaction(); // トランザクション開始
 
-        if (!$product) {
-            abort(404);
+        try {
+            $product = Product::find($id);
+
+            if (!$product) {
+                return redirect()->route('index')->with('error', '商品が見つかりませんでした。');
+            }
+
+            $product->delete();
+            DB::commit();
+
+            // 削除完了メッセージ付きで一覧画面にリダイレクト
+            return redirect()->route('index')->with('success', '商品を削除しました。');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // エラーメッセージをセッションに保存
+            return redirect()->route('index')->with('error', '商品削除中にエラーが発生しました: ' . $e->getMessage());
         }
-
-        $product->delete();
-
-        // 削除したら一覧画面にリダイレクト
-        return redirect()->route('index');
     }
 }
