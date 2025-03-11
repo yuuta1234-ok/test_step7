@@ -15,6 +15,10 @@
    font-size: 50px;
 }
 
+.form-control{
+   width: 60%;
+}
+
 /* 一覧画面 */
 .search-form{
    margin-left: 160px;
@@ -129,3 +133,4 @@ textarea{
    width: 80px;
 
 }
+

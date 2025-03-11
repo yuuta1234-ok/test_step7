@@ -8,7 +8,6 @@ use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
 
 class TestController extends Controller
 {
@@ -126,7 +125,7 @@ class TestController extends Controller
 
 
     // 更新処理
-    public function update(UpdateProductRequest $request, $id)
+    public function update(StoreProductRequest $request, $id)
     {
         DB::beginTransaction(); // トランザクション開始
 

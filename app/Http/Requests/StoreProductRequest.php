@@ -18,8 +18,6 @@ class StoreProductRequest extends FormRequest
             'company_id'   => 'required|exists:companies,id',
             'price'        => 'required|numeric|min:0',
             'stock'        => 'required|integer|min:0',
-            'comment'      => 'nullable|string|max:500',
-            'img_path'     => 'required|file|image|max:2048', // 新規登録は画像必須
         ];
     }
 
@@ -33,10 +31,6 @@ class StoreProductRequest extends FormRequest
             'price.numeric'         => '価格は数値で入力してください。',
             'stock.required'        => '在庫数を入力してください。',
             'stock.integer'         => '在庫数は整数で入力してください。',
-            'comment.max'           => 'コメントは500文字以内で入力してください。',
-            'img_path.required'     => '画像をアップロードしてください。',
-            'img_path.image'        => 'アップロードできるのは画像ファイルのみです。',
-            'img_path.max'          => '画像のサイズは2MB以下にしてください。',
         ];
     }
 }

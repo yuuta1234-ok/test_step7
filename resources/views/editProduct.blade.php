@@ -24,7 +24,10 @@
             </div>
             <div class="form-group">
                 <label class="form-label">商品名<span class="required">*</span></label>
-                <input type="text" name="product_name" class="control" value="{{ old('product_name', $product->product_name) }}">
+                <input type="text" class="control @error('product_name') @enderror" id="product_name" name="product_name" value="{{ old('product_name', $product->product_name) }}">
+                @error('product_name')
+                <div class="text-danger" style="font-size: 20px; margin-left: 40%;">{{ $message }}</div>
+                @enderror
             </div>
             <div class="form-group">
                 <label class="form-label">メーカー名<span class="required">*</span></label>
@@ -36,14 +39,23 @@
                     </option>
                     @endforeach
                 </select>
+                @error('company_id')
+                <div class="text-danger" style="font-size: 20px; margin-left: 40%;">{{ $message }}</div>
+                @enderror
             </div>
             <div class="form-group">
                 <label class="form-label">価格<span class="required">*</span></label>
                 <input type="text" name="price" class="control" value="{{ old('price', $product->price) }}">
+                @error('price')
+                <div class="text-danger" style="font-size: 20px; margin-left: 40%;">{{ $message }}</div>
+                @enderror
             </div>
             <div class="form-group">
                 <label class="form-label">在庫数<span class="required">*</span></label>
                 <input type="text" name="stock" class="control" value="{{ old('stock', $product->stock) }}">
+                @error('stock')
+                <div class="text-danger" style="font-size: 20px; margin-left: 40%;">{{ $message }}</div>
+                @enderror
             </div>
             <div class="form-group">
                 <label class="form-label">コメント</label>
@@ -52,9 +64,6 @@
             <div class="form-group d-flex align-items-center" style="padding: 20px 0;">
                 <label class="form-label col-sm-4 text-start fw-bold">商品画像</label>
                 <input type="file" class="control @error('img_path') is-invalid @enderror" id="img_path" name="img_path">
-                @error('img_path')
-                <div class="text-danger">{{ $message }}</div>
-                @enderror
             </div>
 
             <button type="submit" class="button btn btn-warning py-3 fs-5">更新</button>
