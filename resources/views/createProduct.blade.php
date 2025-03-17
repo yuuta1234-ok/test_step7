@@ -19,7 +19,7 @@
 
             <div class="form-group">
                 <label class="form-label">商品名<span class="required">*</span></label>
-                <input type="text" class="control @error('product_name') @enderror" id="product_name" name="product_name" value="{{ old('product_name', $product->product_name) }}">
+                <input type="text" class="control @error('product_name') @enderror" id="product_name" name="product_name" value="{{ old('product_name') }}">
                 @error('product_name')
                 <div class="text-danger" style="font-size: 20px; margin-left: 40%;">{{ $message }}</div>
                 @enderror
