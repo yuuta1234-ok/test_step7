@@ -12,23 +12,50 @@ use App\Http\Requests\StoreProductRequest;
 class TestController extends Controller
 {
 
-    // 商品一覧画面の表示と検索処理
     public function index(Request $request)
     {
+
         $search = $request->input('product_name');
         $company_id = $request->input('company_id');
 
-        // Product モデルのEloquentを使ってデータ取得
-        $products = Product::with('company') // companyリレーションを使って関連データも取得
+        $priceMin = $request->input('price_min');
+        $priceMax = $request->input('price_max');
+        $stockMin = $request->input('stock_min');
+        $stockMax = $request->input('stock_max');
+
+        $sortColumn = $request->input('sort_column', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+
+        $products = Product::with('company')
             ->when($search, function ($query) use ($search) {
                 return $query->where('product_name', 'like', "%{$search}%");
             })
             ->when($company_id, function ($query) use ($company_id) {
                 return $query->where('company_id', $company_id);
             })
-            ->paginate(10); // ページネーションを利用
+            ->when($priceMin, function ($query) use ($priceMin) {
+                return $query->where('price', '>=', $priceMin);
+            })
+            ->when($priceMax, function ($query) use ($priceMax) {
+                return $query->where('price', '<=', $priceMax);
+            })
+            ->when($stockMin, function ($query) use ($stockMin) {
+                return $query->where('stock', '>=', $stockMin);
+            })
+            ->when($stockMax, function ($query) use ($stockMax) {
+                return $query->where('stock', '<=', $stockMax);
+            })
+            ->orderBy($sortColumn, $sortOrder)
+            ->paginate(10);
 
-        $companies = Company::all(['id', 'company_name']); // 会社情報の取得
+
+        $companies = Company::all(['id', 'company_name']);
+
+        // Ajaxリクエストならview部分だけ返す
+        if ($request->ajax()) {
+            return view('homeProduct', compact('products', 'companies'))->render();
+        }
 
         return view('homeProduct', compact('products', 'companies'));
     }
@@ -160,27 +187,18 @@ class TestController extends Controller
     }
 
 
-    // 削除処理
     public function delete($id)
     {
-        DB::beginTransaction(); // トランザクション開始
+        Log::info("削除リクエスト受信 ID: " . $id); // ログを出力して確認
 
-        try {
-            $product = Product::find($id);
+        $product = Product::find($id);
 
-            if (!$product) {
-                return redirect()->route('index')->with('error', '商品が見つかりませんでした。');
-            }
-
-            $product->delete();
-            DB::commit();
-
-            // 削除完了メッセージ付きで一覧画面にリダイレクト
-            return redirect()->route('index')->with('success', '商品を削除しました。');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            // エラーメッセージをセッションに保存
-            return redirect()->route('index')->with('error', '商品削除中にエラーが発生しました: ' . $e->getMessage());
+        if (!$product) {
+            return response()->json(['success' => false, 'message' => '商品が見つかりません。'], 404);
         }
+
+        $product->delete();
+
+        return response()->json(['success' => true, 'message' => '商品を削除しました。']);
     }
 }
