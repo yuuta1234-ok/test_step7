@@ -42,20 +42,27 @@
             </form>
         </div>
 
+
         <div id="searchResult">
             <div class="form-container border border-dark">
                 <table class="table table-striped">
                     <tr>
-                        <th style="font-style: italic; font-size: 1.2rem;">ID</th>
-                        <th>商品画像</th>
-                        <th>商品名</th>
-                        <th>
+                        <th style="font-style: italic; font-size: 1.2rem;">
+                            <a href="#" class="sort-link" data-column="id" data-order="desc">ID</a>
+                        </th>
+                        <th style="font-size: 1.2rem;">商品画像</th>
+                        <th style="font-size: 1.2rem;">
+                            <a href="#" class="sort-link" data-column="product_name" data-order="desc">商品名</a>
+                        </th>
+                        <th style="font-size: 1.2rem;">
                             <a href="#" class="sort-link" data-column="price" data-order="asc">価格</a>
                         </th>
-                        <th>
+                        <th style="font-size: 1.2rem;">
                             <a href="#" class="sort-link" data-column="stock" data-order="asc">在庫数</a>
                         </th>
-                        <th>メーカー名</th>
+                        <th style="font-size: 1.2rem;">
+                            <a href="#" class="sort-link" data-column="company_id" data-order="asc">メーカー名</a>
+                        </th>
                         <th colspan="2" class="title align-middle col-9" style="width: 10%;">
                             <a href="{{route('store')}}" class="create-button btn btn-warning align-middle">新規登録</a>
                         </th>
@@ -86,10 +93,15 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
             $(document).ready(function() {
-                $('#searchForm').on('submit', function(e) {
-                    e.preventDefault(); // ページリロードを防ぐ
 
-                    let formData = $(this).serialize(); // フォームデータをまとめて取得
+                // ソート状態の記録用オブジェクト（カラムごとに昇順・降順を記録）
+                let sortStates = {};
+
+                // 検索フォーム送信（非同期）
+                $('#searchForm').on('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = $(this).serialize(); // 検索条件まとめて取得
 
                     $.ajax({
                         url: '{{ route("index") }}',
@@ -103,58 +115,69 @@
                         }
                     });
                 });
-            });
 
-            // ソート切り替え（非同期）
-            $(document).on('click', '.sort-link', function(e) {
-                e.preventDefault();
+                // ソートリンククリック時の処理
+                $(document).on('click', '.sort-link', function(e) {
+                    e.preventDefault();
 
-                let column = $(this).data('column');
-                let currentOrder = $(this).data('order');
-                let newOrder = (currentOrder === 'asc') ? 'desc' : 'asc';
+                    const column = $(this).data('column');
+                    const currentOrder = sortStates[column] || 'asc';
+                    const newOrder = (currentOrder === 'asc') ? 'desc' : 'asc';
 
-                $(this).data('order', newOrder);
-                $(this).attr('data-order', newOrder);
+                    sortStates[column] = newOrder;
 
-                $.ajax({
-                    url: '{{ route("index") }}',
-                    method: 'GET',
-                    data: {
-                        sort_column: column,
-                        sort_order: newOrder
-                    },
-                    success: function(response) {
-                        $('#searchResult').html($(response).find('#searchResult').html());
-                    },
-                    error: function() {
-                        alert('ソートに失敗しました。');
-                    }
-                });
-            });
+                    // フォームの値も取得して一緒に送信
+                    const formData = $('#searchForm').serializeArray();
 
-            $(document).on('click', '.delete-button', function(e) {
-                e.preventDefault();
+                    formData.push({
+                        name: 'sort_column',
+                        value: column
+                    });
+                    formData.push({
+                        name: 'sort_order',
+                        value: newOrder
+                    });
 
-                let id = $(this).data('id');
-                if (!confirm('本当に削除しますか？')) return;
-
-                $.ajax({
-                    url: '{{ url("deleteProduct") }}/' + id,
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    data: {
-                        _method: 'DELETE'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $('#product-' + id).remove();
-                            // 「#」はJ.Sのセレクタで使う記号　→　HTMLのID属性を指定するという意味を持つ
-                            // 今回は削除対象となる列に指定されているIDである（64行目）
+                    $.ajax({
+                        url: '{{ route("index") }}',
+                        method: 'GET',
+                        data: formData,
+                        success: function(response) {
+                            $('#searchResult').html($(response).find('#searchResult').html());
+                        },
+                        error: function() {
+                            alert('ソートに失敗しました。');
                         }
-                    }
+                    });
                 });
+
+                // 商品削除（非同期）
+                $(document).on('click', '.delete-button', function(e) {
+                    e.preventDefault();
+
+                    const id = $(this).data('id');
+                    if (!confirm('本当に削除しますか？')) return;
+
+                    $.ajax({
+                        url: '{{ url("deleteProduct") }}/' + id,
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            _method: 'DELETE'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $('#product-' + id).remove();
+                            }
+                        },
+                        error: function() {
+                            alert('削除に失敗しました。');
+                        }
+                    });
+                });
+
             });
         </script>
 </body>
